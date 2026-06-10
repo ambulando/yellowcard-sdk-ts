@@ -1,6 +1,6 @@
-# yellowcard-sdk
+# @ambulando/yellowcard-sdk
 
-TypeScript client for the [YellowCard API](https://docs.yellowcard.engineering/) — a crypto exchange and payment platform serving African markets.
+TypeScript SDK for the [YellowCard API](https://docs.yellowcard.engineering/) — a crypto exchange and payment platform serving African markets.
 
 ## Requirements
 
@@ -12,7 +12,7 @@ TypeScript client for the [YellowCard API](https://docs.yellowcard.engineering/)
 npm install @ambulando/yellowcard-sdk
 ```
 
-## Usage
+## Quick start
 
 ```ts
 import { YellowCard } from '@ambulando/yellowcard-sdk';
@@ -31,37 +31,34 @@ const client = new YellowCard('your-api-key', 'your-secret-key', { sandbox: true
 ### Rates
 
 ```ts
-// List all rates, optionally filtered by currency
-const rates = await client.rates.list({ from: 'USD' });
-const rates = await client.rates.list({ from: 'USD', to: 'GHS' });
-
-// Get a specific currency pair
-const rate = await client.rates.get('USD', 'GHS');
+// List rates, optionally filtered by currency
+const rates = await client.rates.list('USD');
 ```
 
 ### Networks & Channels
 
 ```ts
-// List all supported networks
+// List supported networks (optionally filter by country code)
 const networks = await client.networks.list();
+const ngNetworks = await client.networks.list('NG');
 
-// List payment channels, optionally filtered by country code
+// List payment channels (optionally filter by country code)
 const channels = await client.networks.channels();
-const channels = await client.networks.channels('GH');
+const ghChannels = await client.networks.channels('GH');
 ```
 
-### Payments
+### Payments (receive)
 
 ```ts
-// Create a payment
+// Create a receive payment
 const payment = await client.payments.create({
-  sequenceId: 'order-12345',   // caller-assigned idempotency key
+  sequenceId: 'order-12345',
   amount: 100,
-  currency: 'USD',
+  currency: 'NGN',
   channelId: 'your-channel-id',
-  destination: {
-    accountName: 'Jane Doe',
-    accountNumber: '0241234567',
+  recipient: {
+    name: 'Jane Doe',
+    phone: '+233241234567',
     country: 'GH',
   },
   reason: 'salary',
@@ -71,8 +68,19 @@ const payment = await client.payments.create({
 const payment = await client.payments.get('payment-id');
 const payment = await client.payments.getBySequenceId('order-12345');
 
-// Cancel a pending payment
+// List payments with optional filters
+const result = await client.payments.getAll({
+  startDate: '2024-01-01',
+  endDate: '2024-12-31',
+  perPage: 20,
+  orderBy: 'desc',
+});
+
+// Lifecycle actions
+await client.payments.accept('payment-id');
+await client.payments.deny('payment-id');
 await client.payments.cancel('payment-id');
+await client.payments.refund('payment-id');
 ```
 
 ### Accounts
@@ -82,9 +90,42 @@ await client.payments.cancel('payment-id');
 const accounts = await client.accounts.list();
 ```
 
+### Vaults (custody)
+
+The `Vaults` service manages custody vaults and addresses. Instantiate it directly with an `HttpClient`:
+
+```ts
+import { HttpClient } from '@ambulando/yellowcard-sdk/client';
+import { Vaults } from '@ambulando/yellowcard-sdk/services/vaults';
+
+const http = new HttpClient('your-api-key', 'your-secret-key');
+const vaults = new Vaults(http);
+
+const vault = await vaults.create('my-vault');
+const all = await vaults.getAll();
+const single = await vaults.get('vault-id');
+const configs = await vaults.getConfig('vault-id');
+const address = await vaults.createAddress({ token: 'ETH', vaultId: 'vault-id' });
+```
+
+### Webhooks
+
+```ts
+import { HttpClient } from '@ambulando/yellowcard-sdk/client';
+import { PaymentsService as WebhookService } from '@ambulando/yellowcard-sdk/services/webhook';
+
+const http = new HttpClient('your-api-key', 'your-secret-key');
+const webhooks = new WebhookService(http);
+
+await webhooks.create({ url: 'https://example.com/hook', active: true });
+await webhooks.update({ id: 'wh-1', active: false });
+await webhooks.remove('wh-1');
+const list = await webhooks.list();
+```
+
 ## Error handling
 
-All API errors throw an `APIError` with `statusCode`, `code`, and `message` fields. Use the `isNotFound` and `isUnauthorized` helpers for common cases:
+All API errors throw an `APIError` with `statusCode`, `code`, and `message` fields:
 
 ```ts
 import { YellowCard, APIError, isNotFound, isUnauthorized } from '@ambulando/yellowcard-sdk';
@@ -102,53 +143,46 @@ try {
 }
 ```
 
+## Authentication
+
+Every request is signed with HMAC-SHA256. The SDK handles this automatically — no configuration required beyond passing your API key and secret to the constructor.
+
+Headers sent on every request:
+
+| Header | Description |
+|--------|-------------|
+| `Authorization` | `YcHmacV1 {apiKey}:{signature}` |
+| `X-YC-Timestamp` | ISO 8601 timestamp of the request |
+
+The signature covers `timestamp + path + method + SHA256(body)`.
+
 ## Configuration
 
-The third argument to `YellowCard` accepts a `ClientOptions` object:
+`ClientOptions` (third argument to `YellowCard`):
 
 | Option | Type | Description |
 |--------|------|-------------|
-| `sandbox` | `boolean` | Use the sandbox environment (`https://sandbox.yellowcard.io`) |
+| `sandbox` | `boolean` | Point to `https://sandbox.yellowcard.io` |
 | `baseURL` | `string` | Override the base URL entirely |
-| `fetch` | `typeof fetch` | Supply a custom fetch implementation (useful for testing or proxying) |
+| `fetch` | `typeof fetch` | Custom fetch implementation (useful for testing or proxying) |
 
 ## Development
 
 ```bash
-npm test          # run tests
-npm run build     # compile to dist/
-npm run typecheck # type-check without emitting
+npm test              # run tests (Jest)
+npm run test:watch    # watch mode
+npm run build         # compile ESM + CJS + .d.ts into dist/
+npm run typecheck     # type-check without emitting
 ```
 
-## Publishing to npm
+## Publishing
 
-1. Make sure you are logged in to npm:
+```bash
+npm run build
+npm pack --dry-run          # verify package contents
 
-   ```bash
-   npm login
-   ```
+npm version patch           # 0.1.0 → 0.1.1
+npm publish --access public # --access public required for scoped packages on first publish
+```
 
-2. Build and verify the package contents:
-
-   ```bash
-   npm run build
-   npm pack --dry-run
-   ```
-
-3. Bump the version in `package.json` following [semver](https://semver.org/):
-
-   ```bash
-   npm version patch   # 0.1.0 → 0.1.1 (bug fixes)
-   npm version minor   # 0.1.0 → 0.2.0 (new features)
-   npm version major   # 0.1.0 → 1.0.0 (breaking changes)
-   ```
-
-4. Publish:
-
-   ```bash
-   npm publish --access public
-   ```
-
-   The `--access public` flag is required for scoped packages (`@ambulando/...`) on first publish.
-
-> To publish a pre-release (e.g. a beta), use `npm version 1.0.0-beta.1` and then `npm publish --tag beta`.
+For a pre-release: `npm version 1.0.0-beta.1 && npm publish --tag beta`
