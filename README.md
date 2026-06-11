@@ -179,10 +179,12 @@ npm run typecheck     # type-check without emitting
 
 ```bash
 npm run build
-npm pack --dry-run          # verify package contents
+npm pack --dry-run
 
-npm version patch           # 0.1.0 → 0.1.1
-npm publish --access public # --access public required for scoped packages on first publish
+npm version patch   # 0.1.0 → 0.1.1
+npm publish --access public
 ```
+
+> `--access public` is required for scoped packages (`@ambulando/...`) on first publish.
 
 For a pre-release: `npm version 1.0.0-beta.1 && npm publish --tag beta`
