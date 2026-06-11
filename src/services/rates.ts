@@ -17,7 +17,7 @@ export class RatesService {
     const q = new URLSearchParams();
     if (currency) q.set('currency', currency);
     const qs = q.toString() ? `?${q}` : '';
-    const resp = await this.client.get<{ rates: Rate[] }>(`/business/rates${qs}`);
-    return resp.rates;
+    return  this.client.get<{ rates: Rate[] }>(`/business/rates${qs}`)
+      .then(result => result.rates);
   }
 }

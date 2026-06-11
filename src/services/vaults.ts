@@ -60,7 +60,7 @@ export interface AddressRequest {
   vaultId: string;
 }
 
-export class Vaults {
+export class VaultService {
   constructor(private readonly client: HttpClient) {}
 
   // https://sandbox.api.yellowcard.io/custody/vaults
@@ -80,7 +80,7 @@ export class Vaults {
   }
 
   // https://sandbox.api.yellowcard.io/custody/vaults/config
-  async getConfig(id: string): Promise<Config[]> {
+  async getConfig(): Promise<Config[]> {
     return this.client.get<Config[]>(`/custody/vaults/config`);
   }
 

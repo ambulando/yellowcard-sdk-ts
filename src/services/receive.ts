@@ -104,50 +104,49 @@ export interface SearchData {
 export class PaymentsService {
   constructor(private readonly client: HttpClient) {}
 
-  create(req: ReceivePaymentRequest): Promise<ReceivePaymentResponse> {
+  async create(req: ReceivePaymentRequest): Promise<ReceivePaymentResponse> {
     return this.client.post<ReceivePaymentResponse>('/business/receive', req);
   }
 
   // https://sandbox.api.yellowcard.io/business/receive/{id}/accept
-  accept(id: string): Promise<Payment> {
-    return this.client.post<Payment>(`/v2/business/receive/${id}/accept`, undefined);
+  async accept(id: string): Promise<Payment> {
+    return this.client.post<Payment>(`/business/receive/${id}/accept`, undefined);
   }
 
   // https://sandbox.api.yellowcard.io/business/receive/{id}/deny
-  deny(id: string): Promise<Payment> {
-    return this.client.post<Payment>(`/v2/business/receive/${id}/deny`, undefined);
+  async deny(id: string): Promise<Payment> {
+    return this.client.post<Payment>(`/business/receive/${id}/deny`, undefined);
   }
 
   // https://sandbox.api.yellowcard.io/business/receive/{id}/cancel
-  cancel(id: string): Promise<Payment> {
-    return this.client.post<Payment>(`/v2/business/receive/${id}/cancel`, undefined);
+  async cancel(id: string): Promise<Payment> {
+    return this.client.post<Payment>(`/business/receive/${id}/cancel`, undefined);
   }
 
   // https://sandbox.api.yellowcard.io/business/receive/{id}/refund
-  refund(id: string): Promise<Payment> {
-    return this.client.post<Payment>(`/v2/business/receive/${id}/refund`, undefined);
+  async refund(id: string): Promise<Payment> {
+    return this.client.post<Payment>(`/business/receive/${id}/refund`, undefined);
   }
 
   // https://sandbox.api.yellowcard.io/business/receive/{id}
-  get(id: string): Promise<Payment> {
-    return this.client.get<Payment>(`/v2/business/receive/${id}`);
+  async get(id: string): Promise<Payment> {
+    return this.client.get<Payment>(`/business/receive/${id}`);
   }
 
   // https://sandbox.api.yellowcard.io/business/receive/sequence-id/{id}
-  getBySequenceId(id: string): Promise<Payment> {
-    return this.client.get<Payment>(`/v2/business/receive/sequence-id/${id}`);
+  async getBySequenceId(id: string): Promise<Payment> {
+    return this.client.get<Payment>(`/business/receive/sequence-id/${id}`);
   }
 
   // https://sandbox.api.yellowcard.io/business/receives
-  getAll(data: SearchData): Promise<PaymentCollection> {
+  async getAll(data: SearchData): Promise<Payment[]> {
     const query = new URLSearchParams(
       Object.entries(data)
         .filter(([, v]) => v !== undefined)
         .map(([k, v]) => [k, String(v)] as [string, string])
     ).toString();
-    const path = query ? `/v2/business/receives?${query}` : '/v2/business/receives';
-    return this.client.get<PaymentCollection>(path);
+    const path = query ? `/business/receives?${query}` : '/business/receives';
+    return this.client.get<PaymentCollection>(path).then(resp => resp.collections);
   }
-
 
 }

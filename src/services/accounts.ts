@@ -10,7 +10,7 @@ export class AccountsService {
   constructor(private readonly client: HttpClient) {}
 
   async list(): Promise<Account[]> {
-    const resp = await this.client.get<{ accounts: Account[] }>('/business/account');
-    return resp.accounts;
+    return  this.client.get<{ accounts: Account[] }>('/business/account')
+      .then(r => r.accounts);
   }
 }

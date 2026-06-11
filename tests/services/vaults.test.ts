@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals';
 import { HttpClient } from '../../src/client.js';
-import { Vaults } from '../../src/services/vaults.js';
+import { VaultService } from '../../src/services/vaults.js';
 
 function makeFetch(body: unknown, status = 200): jest.MockedFunction<typeof globalThis.fetch> {
   const mock = jest.fn() as unknown as jest.MockedFunction<typeof globalThis.fetch>;
@@ -16,7 +16,7 @@ function makeFetch(body: unknown, status = 200): jest.MockedFunction<typeof glob
 function makeService(body: unknown, status = 200) {
   const fetchFn = makeFetch(body, status);
   const client = new HttpClient('my-key', 'my-secret', { fetch: fetchFn });
-  return { service: new Vaults(client), fetchFn };
+  return { service: new VaultService(client), fetchFn };
 }
 
 function getHeaders(fetchFn: jest.MockedFunction<typeof globalThis.fetch>): Record<string, string> {

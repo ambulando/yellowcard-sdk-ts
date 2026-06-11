@@ -1,16 +1,19 @@
 import type {HttpClient} from "../client";
 
+// placeholder - unknown values
+type State = 'pending'| 'done'
+
 export interface WebhookRequest {
   id?: string;
   active?: boolean;
   url?: string;
-  state?: string;
+  state?: State;
 }
 
 export interface Webhook {
   partnerId?: string;
   url?: string;
-  state?: string;
+  state?: State;
   active?: boolean;
   createdAt?: string;
   updatedAt?: string;
