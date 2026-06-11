@@ -169,19 +169,23 @@ The signature covers `timestamp + path + method + SHA256(body)`.
 ## Development
 
 ```bash
-npm test              # run tests (Jest)
-npm run test:watch    # watch mode
-npm run build         # compile ESM + CJS + .d.ts into dist/
-npm run typecheck     # type-check without emitting
+npm test
+npm run test:watch
+npm run build
+npm run typecheck
 ```
 
 ## Publishing
 
+Build and verify the package contents:
 ```bash
 npm run build
 npm pack --dry-run
+```
 
-npm version patch   # 0.1.0 → 0.1.1
+Bump the version and publish:
+```bash
+npm version patch
 npm publish --access public
 ```
 
