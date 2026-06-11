@@ -1,7 +1,20 @@
 import type {HttpClient} from "../client";
 
 // placeholder - unknown values
-type State = 'pending'| 'done'
+type State = "CREATED"
+  |"PENDING_APPROVAL"
+  |"PROCESS"
+  |"PROCESSING"
+  |"PENDING_LIQUIDITY"
+  |"PENDING"
+  |"COMPLETE"
+  |"FAILED"
+  |"PENDING_REFUND"
+  |"REFUND_PROCESSING"
+  |"REFUND_FAILED"
+  |"REFUNDED"
+  |"CANCELLED"
+  |"EXPIRED"
 
 export interface WebhookRequest {
   id?: string;
