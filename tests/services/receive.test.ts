@@ -45,14 +45,14 @@ describe('PaymentsService (receive)', () => {
   });
 
   describe('accept', () => {
-    it('POSTs to /v2/business/receive/:id/accept', async () => {
+    it('POSTs to /business/receive/:id/accept', async () => {
       const { service, fetchFn } = makeService(PAYMENT);
 
       const result = await service.accept('pay-1');
 
       const [url, init] = jest.mocked(fetchFn).mock.calls[0];
       const headers = getHeaders(fetchFn);
-      expect(url).toContain('/v2/business/receive/pay-1/accept');
+      expect(url).toContain('/business/receive/pay-1/accept');
       expect(init?.method).toBe('POST');
       expect(headers['Authorization']).toMatch(/^YcHmacV1 my-key:/);
       expect(headers['X-YC-Timestamp']).toBeDefined();
@@ -61,14 +61,14 @@ describe('PaymentsService (receive)', () => {
   });
 
   describe('deny', () => {
-    it('POSTs to /v2/business/receive/:id/deny', async () => {
+    it('POSTs to /business/receive/:id/deny', async () => {
       const { service, fetchFn } = makeService(PAYMENT);
 
       const result = await service.deny('pay-1');
 
       const [url, init] = jest.mocked(fetchFn).mock.calls[0];
       const headers = getHeaders(fetchFn);
-      expect(url).toContain('/v2/business/receive/pay-1/deny');
+      expect(url).toContain('/business/receive/pay-1/deny');
       expect(init?.method).toBe('POST');
       expect(headers['Authorization']).toMatch(/^YcHmacV1 my-key:/);
       expect(headers['X-YC-Timestamp']).toBeDefined();
@@ -77,14 +77,14 @@ describe('PaymentsService (receive)', () => {
   });
 
   describe('cancel', () => {
-    it('POSTs to /v2/business/receive/:id/cancel', async () => {
+    it('POSTs to /business/receive/:id/cancel', async () => {
       const { service, fetchFn } = makeService(PAYMENT);
 
       const result = await service.cancel('pay-1');
 
       const [url, init] = jest.mocked(fetchFn).mock.calls[0];
       const headers = getHeaders(fetchFn);
-      expect(url).toContain('/v2/business/receive/pay-1/cancel');
+      expect(url).toContain('/business/receive/pay-1/cancel');
       expect(init?.method).toBe('POST');
       expect(headers['Authorization']).toMatch(/^YcHmacV1 my-key:/);
       expect(headers['X-YC-Timestamp']).toBeDefined();
@@ -93,14 +93,14 @@ describe('PaymentsService (receive)', () => {
   });
 
   describe('refund', () => {
-    it('POSTs to /v2/business/receive/:id/refund', async () => {
+    it('POSTs to /business/receive/:id/refund', async () => {
       const { service, fetchFn } = makeService(PAYMENT);
 
       const result = await service.refund('pay-1');
 
       const [url, init] = jest.mocked(fetchFn).mock.calls[0];
       const headers = getHeaders(fetchFn);
-      expect(url).toContain('/v2/business/receive/pay-1/refund');
+      expect(url).toContain('/business/receive/pay-1/refund');
       expect(init?.method).toBe('POST');
       expect(headers['Authorization']).toMatch(/^YcHmacV1 my-key:/);
       expect(headers['X-YC-Timestamp']).toBeDefined();
@@ -109,14 +109,14 @@ describe('PaymentsService (receive)', () => {
   });
 
   describe('get', () => {
-    it('GETs /v2/business/receive/:id', async () => {
+    it('GETs /business/receive/:id', async () => {
       const { service, fetchFn } = makeService(PAYMENT);
 
       const result = await service.get('pay-1');
 
       const [url, init] = jest.mocked(fetchFn).mock.calls[0];
       const headers = getHeaders(fetchFn);
-      expect(url).toContain('/v2/business/receive/pay-1');
+      expect(url).toContain('/business/receive/pay-1');
       expect(init?.method).toBe('GET');
       expect(headers['Authorization']).toMatch(/^YcHmacV1 my-key:/);
       expect(headers['X-YC-Timestamp']).toBeDefined();
@@ -125,14 +125,14 @@ describe('PaymentsService (receive)', () => {
   });
 
   describe('getBySequenceId', () => {
-    it('GETs /v2/business/receive/sequence-id/:id', async () => {
+    it('GETs /business/receive/sequence-id/:id', async () => {
       const { service, fetchFn } = makeService(PAYMENT);
 
       const result = await service.getBySequenceId('seq-1');
 
       const [url, init] = jest.mocked(fetchFn).mock.calls[0];
       const headers = getHeaders(fetchFn);
-      expect(url).toContain('/v2/business/receive/sequence-id/seq-1');
+      expect(url).toContain('/business/receive/sequence-id/seq-1');
       expect(init?.method).toBe('GET');
       expect(headers['Authorization']).toMatch(/^YcHmacV1 my-key:/);
       expect(headers['X-YC-Timestamp']).toBeDefined();
@@ -141,7 +141,7 @@ describe('PaymentsService (receive)', () => {
   });
 
   describe('getAll', () => {
-    it('GETs /v2/business/receives with no query when data is empty', async () => {
+    it('GETs /business/receives with no query when data is empty', async () => {
       const collection = { collections: [PAYMENT] };
       const { service, fetchFn } = makeService(collection);
 
@@ -149,12 +149,12 @@ describe('PaymentsService (receive)', () => {
 
       const [url, init] = jest.mocked(fetchFn).mock.calls[0];
       const headers = getHeaders(fetchFn);
-      expect(url).toContain('/v2/business/receives');
+      expect(url).toContain('/business/receives');
       expect(url).not.toContain('?');
       expect(init?.method).toBe('GET');
       expect(headers['Authorization']).toMatch(/^YcHmacV1 my-key:/);
       expect(headers['X-YC-Timestamp']).toBeDefined();
-      expect(result).toEqual(collection);
+      expect(result).toEqual(collection.collections);
     });
 
     it('appends query params from SearchData', async () => {

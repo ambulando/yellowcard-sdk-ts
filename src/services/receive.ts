@@ -104,41 +104,42 @@ export interface SearchData {
 export class PaymentsService {
   constructor(private readonly client: HttpClient) {}
 
+  // https://docs.yellowcard.engineering/reference/submit-collection-request
   async create(req: ReceivePaymentRequest): Promise<ReceivePaymentResponse> {
     return this.client.post<ReceivePaymentResponse>('/business/receive', req);
   }
 
-  // https://sandbox.api.yellowcard.io/business/receive/{id}/accept
+  // https://docs.yellowcard.engineering/reference/accept-collection-request
   async accept(id: string): Promise<Payment> {
     return this.client.post<Payment>(`/business/receive/${id}/accept`, undefined);
   }
 
-  // https://sandbox.api.yellowcard.io/business/receive/{id}/deny
+  // POST /business/receive/{id}/deny — not present in the public API reference
   async deny(id: string): Promise<Payment> {
     return this.client.post<Payment>(`/business/receive/${id}/deny`, undefined);
   }
 
-  // https://sandbox.api.yellowcard.io/business/receive/{id}/cancel
+  // https://docs.yellowcard.engineering/docs/cancellation-refunds-collection-requests
   async cancel(id: string): Promise<Payment> {
     return this.client.post<Payment>(`/business/receive/${id}/cancel`, undefined);
   }
 
-  // https://sandbox.api.yellowcard.io/business/receive/{id}/refund
+  // https://docs.yellowcard.engineering/docs/cancellation-refunds-collection-requests
   async refund(id: string): Promise<Payment> {
     return this.client.post<Payment>(`/business/receive/${id}/refund`, undefined);
   }
 
-  // https://sandbox.api.yellowcard.io/business/receive/{id}
+  // https://docs.yellowcard.engineering/reference/lookup-collection
   async get(id: string): Promise<Payment> {
     return this.client.get<Payment>(`/business/receive/${id}`);
   }
 
-  // https://sandbox.api.yellowcard.io/business/receive/sequence-id/{id}
+  // https://docs.yellowcard.engineering/reference/lookup-collection-by-sequenceid
   async getBySequenceId(id: string): Promise<Payment> {
     return this.client.get<Payment>(`/business/receive/sequence-id/${id}`);
   }
 
-  // https://sandbox.api.yellowcard.io/business/receives
+  // https://docs.yellowcard.engineering/docs/list-collections-guide-api
   async getAll(data: SearchData): Promise<Payment[]> {
     const query = new URLSearchParams(
       Object.entries(data)

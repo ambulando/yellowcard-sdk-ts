@@ -25,7 +25,7 @@ function getHeaders(fetchFn: jest.MockedFunction<typeof globalThis.fetch>): Reco
 
 describe('AccountsService', () => {
   describe('list', () => {
-    it('GETs /v2/business/accounts and returns accounts array', async () => {
+    it('GETs /business/account and returns accounts array', async () => {
       const accounts = [
         { id: 'acc-1', label: 'Main', currency: 'USD', balance: 1000, status: 'active' },
         { id: 'acc-2', label: 'Secondary', currency: 'EUR', balance: 500, status: 'active' },
