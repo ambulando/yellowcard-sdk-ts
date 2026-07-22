@@ -2,7 +2,7 @@ import { authHeaders } from './auth.js';
 import { APIError } from './errors.js';
 
 export const DEFAULT_BASE_URL = 'https://api.yellowcard.io';
-export const SANDBOX_BASE_URL = 'https://sandbox.yellowcard.io';
+export const SANDBOX_BASE_URL = 'https://sandbox.api.yellowcard.io';
 
 export interface ClientOptions {
   /** Override the API base URL. */

@@ -163,7 +163,7 @@ The signature covers `timestamp + path + method + SHA256(body)`.
 
 | Option | Type | Description |
 |--------|------|-------------|
-| `sandbox` | `boolean` | Point to `https://sandbox.yellowcard.io` |
+| `sandbox` | `boolean` | Point to `https://sandbox.api.yellowcard.io` |
 | `baseURL` | `string` | Override the base URL entirely |
 | `fetch` | `typeof fetch` | Custom fetch implementation (useful for testing or proxying) |
 
