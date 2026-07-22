@@ -25,7 +25,7 @@ function getHeaders(fetchFn: jest.MockedFunction<typeof globalThis.fetch>): Reco
 
 describe('Vaults', () => {
   describe('create', () => {
-    it('POSTs to /custody/vaults with name', async () => {
+    it('POSTs to /business/vaults with name', async () => {
       const vault = { id: 'v-1', vaultLabel: 'my-vault' };
       const { service, fetchFn } = makeService(vault);
 
@@ -33,7 +33,7 @@ describe('Vaults', () => {
 
       const [url, init] = jest.mocked(fetchFn).mock.calls[0];
       const headers = getHeaders(fetchFn);
-      expect(url).toContain('/custody/vaults');
+      expect(url).toContain('/business/vaults');
       expect(init?.method).toBe('POST');
       expect(JSON.parse(init?.body as string)).toEqual({ name: 'my-vault' });
       expect(headers['Authorization']).toMatch(/^YcHmacV1 my-key:/);
@@ -43,7 +43,7 @@ describe('Vaults', () => {
   });
 
   describe('getAll', () => {
-    it('GETs /custody/vaults and returns the vaults array', async () => {
+    it('GETs /business/vaults and returns the vaults array', async () => {
       const vaults = [{ id: 'v-1' }, { id: 'v-2' }];
       const { service, fetchFn } = makeService({ vaults });
 
@@ -51,7 +51,7 @@ describe('Vaults', () => {
 
       const [url, init] = jest.mocked(fetchFn).mock.calls[0];
       const headers = getHeaders(fetchFn);
-      expect(url).toContain('/custody/vaults');
+      expect(url).toContain('/business/vaults');
       expect(init?.method).toBe('GET');
       expect(headers['Authorization']).toMatch(/^YcHmacV1 my-key:/);
       expect(headers['X-YC-Timestamp']).toBeDefined();
@@ -60,7 +60,7 @@ describe('Vaults', () => {
   });
 
   describe('get', () => {
-    it('GETs /custody/vaults/:id', async () => {
+    it('GETs /business/vaults/:id', async () => {
       const vault = { id: 'v-1', vaultLabel: 'my-vault' };
       const { service, fetchFn } = makeService(vault);
 
@@ -68,23 +68,23 @@ describe('Vaults', () => {
 
       const [url] = jest.mocked(fetchFn).mock.calls[0];
       const headers = getHeaders(fetchFn);
-      expect(url).toContain('/custody/vaults/v-1');
+      expect(url).toContain('/business/vaults/v-1');
       expect(headers['Authorization']).toMatch(/^YcHmacV1 my-key:/);
       expect(headers['X-YC-Timestamp']).toBeDefined();
       expect(result).toEqual(vault);
     });
   });
 
-  describe('getConfig', () => {
-    it('GETs /custody/vaults/config', async () => {
-      const configs = [{ id: 'cfg-1', code: 'BTC' }];
+  describe('getAssetConfig', () => {
+    it('GETs /business/vaults/config', async () => {
+      const configs = [{ id: 'usd-coin', code: 'USDC', defaultNetwork: 'ERC20' }];
       const { service, fetchFn } = makeService(configs);
 
-      const result = await service.getConfig('v-1');
+      const result = await service.getAssetConfig();
 
       const [url] = jest.mocked(fetchFn).mock.calls[0];
       const headers = getHeaders(fetchFn);
-      expect(url).toContain('/custody/vaults/config');
+      expect(url).toContain('/business/vaults/config');
       expect(headers['Authorization']).toMatch(/^YcHmacV1 my-key:/);
       expect(headers['X-YC-Timestamp']).toBeDefined();
       expect(result).toEqual(configs);
@@ -92,7 +92,7 @@ describe('Vaults', () => {
   });
 
   describe('createAddress', () => {
-    it('POSTs to /custody/addresses with token and vaultId', async () => {
+    it('POSTs to /business/addresses with token and vaultId', async () => {
       const address = { address: '0xabc', token: 'ETH', vaultId: 'v-1' };
       const { service, fetchFn } = makeService(address);
 
@@ -100,7 +100,7 @@ describe('Vaults', () => {
 
       const [url, init] = jest.mocked(fetchFn).mock.calls[0];
       const headers = getHeaders(fetchFn);
-      expect(url).toContain('/custody/addresses');
+      expect(url).toContain('/business/addresses');
       expect(init?.method).toBe('POST');
       expect(JSON.parse(init?.body as string)).toEqual({ token: 'ETH', vaultId: 'v-1' });
       expect(headers['Authorization']).toMatch(/^YcHmacV1 my-key:/);

@@ -92,20 +92,21 @@ const accounts = await client.accounts.list();
 
 ### Vaults (custody)
 
-The `Vaults` service manages custody vaults and addresses. Instantiate it directly with an `HttpClient`:
+The `vaults` service manages custody vaults and deposit addresses:
 
 ```ts
-import { HttpClient } from '@ambulando/yellowcard-sdk/client';
-import { Vaults } from '@ambulando/yellowcard-sdk/services/vaults';
+// Create a vault and list them
+const vault = await client.vaults.create('Main Treasury Vault');
+const all = await client.vaults.getAll();
 
-const http = new HttpClient('your-api-key', 'your-secret-key');
-const vaults = new Vaults(http);
+// Fetch a single vault, including its per-asset balances
+const single = await client.vaults.get(vault.id!);
 
-const vault = await vaults.create('my-vault');
-const all = await vaults.getAll();
-const single = await vaults.get('vault-id');
-const configs = await vaults.getConfig('vault-id');
-const address = await vaults.createAddress({ token: 'ETH', vaultId: 'vault-id' });
+// Supported assets and their networks (e.g. USDC on ERC20, SOL, XLM…)
+const assets = await client.vaults.getAssetConfig();
+
+// Generate a deposit address for a currency/network pair
+const address = await client.vaults.createAddress({ token: 'USDC_SOL', vaultId: vault.id! });
 ```
 
 ### Webhooks

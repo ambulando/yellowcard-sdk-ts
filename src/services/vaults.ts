@@ -3,50 +3,57 @@ import type {HttpClient} from "../client";
 export interface Vault {
   id?: string;
   vaultLabel?: string;
+  vaultAccountId?: string;
   partnerId?: string;
-  assets?: Assets[];
+  createdAt?: string;
+  updatedAt?: string;
+  /** Only returned by `get(id)` — the list endpoint omits balances. */
+  assets?: VaultAsset[];
 }
 
-export interface Assets {
+export interface VaultAsset {
+  /** Currency/network pair, e.g. `USDC_SOL`. */
   id?: string;
   available?: string;
   pending?: string;
+  depositAddress?: string;
 }
 
-export interface Config {
-  code?: string;
-  resources?: Resources[];
-  zones?: string[];
-  updatedAt?: string;
-  networks?: Networks;
-  createdAt?: string;
-  isUTXOBased?: boolean;
-  description?: string;
+export interface AssetConfig {
   id?: string;
+  code?: string;
   name?: string;
+  description?: string;
+  resources?: AssetResource[];
+  zones?: string[];
+  networks?: AssetNetworks;
   defaultNetwork?: string;
+  isUTXOBased?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
-export interface Networks {
-  [key: string]: Network
+/** Keyed by network code, e.g. `ERC20`, `SOL`, `XLM`. */
+export interface AssetNetworks {
+  [network: string]: AssetNetwork
 }
 
-export interface Network {
+export interface AssetNetwork {
+  network?: string;
+  name?: string;
   nativeAsset?: string;
   chainCurrencyId?: string;
   addressRegex?: string;
   requiresMemo?: boolean;
   activities?: string[];
   explorerUrl?: string;
-  name?: string;
   enabled?: boolean;
-  network?: string;
 }
 
-export interface Resources {
+export interface AssetResource {
+  id?: string;
   type?: string;
   content?: string;
-  id?: string;
 }
 
 export interface Address {
@@ -56,6 +63,7 @@ export interface Address {
 }
 
 export interface AddressRequest {
+  /** Currency/network pair for the asset, e.g. `USDC_SOL`. */
   token: string;
   vaultId: string;
 }
@@ -63,30 +71,35 @@ export interface AddressRequest {
 export class VaultService {
   constructor(private readonly client: HttpClient) {}
 
-  // https://sandbox.api.yellowcard.io/custody/vaults
+  // https://docs.yellowcard.engineering/reference/post_vaults
   async create(name: string): Promise<Vault> {
-    return this.client.post<Vault>('/custody/vaults', {name})
+    return this.client.post<Vault>('/business/vaults', {name})
   }
 
-  // https://sandbox.api.yellowcard.io/custody/vaults
+  // https://docs.yellowcard.engineering/reference/get_vaults
   async getAll(): Promise<Vault[]> {
-    return this.client.get<{vaults: Vault[]}>('/custody/vaults')
+    return this.client.get<{vaults: Vault[]}>('/business/vaults')
       .then((result) => result.vaults)
   }
 
-  // https://sandbox.api.yellowcard.io/custody/vaults/:id
+  // https://docs.yellowcard.engineering/reference/get_vaults-id
   async get(id: string): Promise<Vault> {
-    return this.client.get<Vault>(`/custody/vaults/${id}`);
+    return this.client.get<Vault>(`/business/vaults/${id}`);
   }
 
-  // https://sandbox.api.yellowcard.io/custody/vaults/config
-  async getConfig(): Promise<Config[]> {
-    return this.client.get<Config[]>(`/custody/vaults/config`);
+  // https://docs.yellowcard.engineering/reference/get_vaults-config
+  async getAssetConfig(): Promise<AssetConfig[]> {
+    return this.client.get<AssetConfig[]>('/business/vaults/config');
   }
 
-  // https://sandbox.api.yellowcard.io/custody/addresses
+  /** @deprecated renamed to {@link getAssetConfig} to match the API reference. */
+  async getConfig(): Promise<AssetConfig[]> {
+    return this.getAssetConfig();
+  }
+
+  // https://docs.yellowcard.engineering/reference/post_addresses
   async createAddress(req: AddressRequest): Promise<Address> {
-    return this.client.post<Address>(`/custody/addresses`, req);
+    return this.client.post<Address>('/business/addresses', req);
   }
 
 }

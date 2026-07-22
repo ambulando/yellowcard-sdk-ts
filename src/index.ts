@@ -12,7 +12,7 @@ export type { Rate } from './services/rates.js';
 export type { Network, Channel } from './services/networks.js';
 export type { Account } from './services/accounts.js';
 export type { Webhook, WebhookRequest } from './services/webhook';
-export type { Vault } from './services/vaults';
+export type { Vault, VaultAsset, AssetConfig, AssetNetworks, AssetNetwork, AssetResource, Address, AddressRequest } from './services/vaults';
 export type { ReceivePaymentResponse, ReceivePaymentRequest, Payment, BankInfo, Recipient, Source, SearchData, PaymentCollection } from './services/receive';
 
 export class YellowCard {
