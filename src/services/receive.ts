@@ -1,23 +1,30 @@
 import type { HttpClient } from '../client.js';
+import { ValidationError } from '../errors.js';
 
-type CustomerType = 'retail'| 'institution'
-type ChannelType = 'momo'|'bank'
+type CustomerType = 'retail' | 'institution';
+type ChannelType = 'bank' | 'momo';
+type SortRangeBy = 'createdAt' | 'updatedAt';
+type OrderBy = 'desc' | 'asc';
 
 export interface ReceivePaymentRequest {
   recipient?: Recipient;
   source?: Source;
+  forceAccept?: boolean;
+  customerType?: CustomerType;
+  directSettlement?: boolean;
+  settlementInfo?: SettlementInfo;
   channelId?: string;
   sequenceId?: string;
   amount?: number;
-  currency?: string;
+  localAmount?: number;
+  redirectUrl?: string;
+  customerUID?: string;
   country?: string;
-  reason?: string;
-  forceAccept?: boolean;
-  customerType?: CustomerType;
+  currency?: string;
   channelType?: ChannelType;
 }
 
-export interface ReceivePaymentResponse {
+export interface Payment {
   recipient?: Recipient;
   source?: Source;
   channelId?: string;
@@ -44,48 +51,39 @@ export interface ReceivePaymentResponse {
 }
 
 export interface Recipient {
-  address?: string;
+  name?: string;
   country?: string;
+  address?: string;
   dob?: string;
   email?: string;
   idNumber?: string;
   idType?: string;
-  name?: string;
+  additionalIdType?: string;
+  additionalIdNumber?: string;
   phone?: string;
+  businessId?: string;
+  businessName?: string;
 }
 
 export interface BankInfo {
-  accountName?: string;
-  accountNumber?: string;
   name?: string;
+  accountNumber?: string;
+  accountName?: string;
 }
 
 export interface Source {
-  accountNumber?: string;
   accountType?: string;
+  accountNumber?: string;
   networkId?: string;
 }
 
-export interface Payment {
-  partnerId?: string;
-  currency?: string;
-  rate?: number;
-  bankInfo?: BankInfo;
-  status?: string;
-  createdAt?: string;
-  source?: Source;
-  sequenceId?: string;
-  country?: string;
-  reference?: string;
-  convertedAmount?: number;
-  recipient?: Recipient;
-  channelId?: string;
-  expiresAt?: string;
-  updatedAt?: string;
-  amount?: number;
-  id?: string;
-  depositId?: string;
+export interface SettlementInfo {
+  walletAddress?: string;
+  cryptoCurrency?: string;
+  cryptoNetwork?: string;
+  walletTag?: string;
 }
+
 
 export interface PaymentCollection {
   collections: Payment[]
@@ -96,17 +94,105 @@ export interface SearchData {
   startDate?: string;
   startAt?: number;
   perPage?: number;
-  rangeBy?: 'createdAt' | 'updatedAt';
-  sortBy?: 'createdAt' | 'updatedAt';
-  orderBy?: 'desc' | 'asc';
+  rangeBy?: SortRangeBy;
+  sortBy?: SortRangeBy;
+  orderBy?: OrderBy;
+}
+
+// Collects every rule the submit-receive endpoint documents for
+// ReceivePaymentRequest and returns a human-readable issue per violation.
+// Rules per https://docs.yellowcard.engineering/reference/submit-collection-request
+// (accept-collection-request itself carries no body — only the {id} path param).
+export function validateReceivePaymentRequest(req: ReceivePaymentRequest): string[] {
+  const issues: string[] = [];
+  const missing = (v: unknown) => v === undefined || v === null || v === '';
+
+  // Always-required top-level fields.
+  if (missing(req.channelId)) issues.push('channelId is required');
+  if (missing(req.sequenceId)) issues.push('sequenceId is required');
+  if (missing(req.customerUID)) issues.push('customerUID is required');
+  if (missing(req.customerType)) issues.push('customerType is required');
+
+  // Enumerated values.
+  if (!missing(req.customerType) && req.customerType !== 'retail' && req.customerType !== 'institution') {
+    issues.push(`customerType must be one of "retail" | "institution" (got "${req.customerType}")`);
+  }
+  if (!missing(req.channelType) && req.channelType !== 'bank' && req.channelType !== 'momo') {
+    issues.push(`channelType must be one of "bank" | "momo" (got "${req.channelType}")`);
+  }
+
+  // Numeric fields must be integers when supplied.
+  if (req.amount !== undefined && !Number.isInteger(req.amount)) issues.push('amount must be an integer');
+  if (req.localAmount !== undefined && !Number.isInteger(req.localAmount)) issues.push('localAmount must be an integer');
+
+  // country/currency are required only when routing by channelType.
+  if (!missing(req.channelType)) {
+    if (missing(req.country)) issues.push('country is required when channelType is used');
+    if (missing(req.currency)) issues.push('currency is required when channelType is used');
+  }
+
+  // Recipient KYC — the required set depends on customerType.
+  const r = req.recipient;
+  if (req.customerType === 'retail') {
+    if (!r) {
+      issues.push('recipient is required when customerType is "retail"');
+    } else {
+      for (const f of ['name', 'phone', 'email', 'country', 'address', 'dob', 'idNumber', 'idType'] as const) {
+        if (missing(r[f])) issues.push(`recipient.${f} is required when customerType is "retail"`);
+      }
+      // Nigerian retail recipients need a second ID.
+      if (r.country === 'NG') {
+        if (missing(r.additionalIdType)) issues.push('recipient.additionalIdType is required for retail recipients in NG');
+        if (missing(r.additionalIdNumber)) issues.push('recipient.additionalIdNumber is required for retail recipients in NG');
+      }
+    }
+  } else if (req.customerType === 'institution') {
+    if (!r) {
+      issues.push('recipient is required when customerType is "institution"');
+    } else {
+      if (missing(r.businessId)) issues.push('recipient.businessId is required when customerType is "institution"');
+      if (missing(r.businessName)) issues.push('recipient.businessName is required when customerType is "institution"');
+      if (missing(r.email)) issues.push('recipient.email is required');
+    }
+  }
+
+  // Source account: accountType is required whenever a source is provided.
+  if (req.source) {
+    if (missing(req.source.accountType)) {
+      issues.push('source.accountType is required');
+    } else if (req.source.accountType !== 'bank' && req.source.accountType !== 'momo') {
+      issues.push(`source.accountType must be one of "bank" | "momo" (got "${req.source.accountType}")`);
+    }
+  }
+
+  // redirectUrl, when present, must be an absolute http(s) URL.
+  if (!missing(req.redirectUrl) && !/^https?:\/\//i.test(req.redirectUrl as string)) {
+    issues.push('redirectUrl must be a valid URL including the http:// or https:// scheme');
+  }
+
+  // Direct settlement requires the crypto payout destination.
+  if (req.directSettlement === true) {
+    const s = req.settlementInfo;
+    if (!s) {
+      issues.push('settlementInfo is required when directSettlement is true');
+    } else {
+      if (missing(s.walletAddress)) issues.push('settlementInfo.walletAddress is required when directSettlement is true');
+      if (missing(s.cryptoCurrency)) issues.push('settlementInfo.cryptoCurrency is required when directSettlement is true');
+      if (missing(s.cryptoNetwork)) issues.push('settlementInfo.cryptoNetwork is required when directSettlement is true');
+    }
+  }
+
+  return issues;
 }
 
 export class PaymentsService {
   constructor(private readonly client: HttpClient) {}
 
   // https://docs.yellowcard.engineering/reference/submit-collection-request
-  async create(req: ReceivePaymentRequest): Promise<ReceivePaymentResponse> {
-    return this.client.post<ReceivePaymentResponse>('/business/receive', req);
+  async create(req: ReceivePaymentRequest): Promise<Payment> {
+    const issues = validateReceivePaymentRequest(req);
+    if (issues.length > 0) throw new ValidationError(issues);
+    return this.client.post<Payment>('/business/receive', req);
   }
 
   // https://docs.yellowcard.engineering/reference/accept-collection-request

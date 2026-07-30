@@ -1,6 +1,27 @@
 import { jest } from '@jest/globals';
 import { HttpClient } from '../../src/client.js';
-import { PaymentsService } from '../../src/services/receive.js';
+import { PaymentsService, validateReceivePaymentRequest } from '../../src/services/receive.js';
+import type { ReceivePaymentRequest } from '../../src/services/receive.js';
+import { ValidationError } from '../../src';
+
+const VALID_RETAIL_REQUEST: ReceivePaymentRequest = {
+  channelId: 'ch-1',
+  sequenceId: 'seq-1',
+  customerUID: 'cust-1',
+  customerType: 'retail',
+  amount: 100,
+  recipient: {
+    name: 'John Doe',
+    phone: '+2349092916898',
+    email: 'john.doe@yellowcard.io',
+    country: 'GH',
+    address: 'Home Address',
+    dob: '02/01/1997',
+    idNumber: '314159',
+    idType: 'license',
+  },
+  source: { accountType: 'bank', accountNumber: '1111111111' },
+};
 
 function makeFetch(body: unknown, status = 200): jest.MockedFunction<typeof globalThis.fetch> {
   const mock = jest.fn() as unknown as jest.MockedFunction<typeof globalThis.fetch>;
@@ -28,7 +49,7 @@ const PAYMENT = { id: 'pay-1', status: 'pending', amount: 100, currency: 'NGN' }
 describe('PaymentsService (receive)', () => {
   describe('create', () => {
     it('POSTs to /business/receive with request body', async () => {
-      const req = { amount: 100, currency: 'NGN', channelId: 'ch-1' };
+      const req = VALID_RETAIL_REQUEST;
       const { service, fetchFn } = makeService(PAYMENT);
 
       const result = await service.create(req);
@@ -41,6 +62,153 @@ describe('PaymentsService (receive)', () => {
       expect(headers['Authorization']).toMatch(/^YcHmacV1 my-key:/);
       expect(headers['X-YC-Timestamp']).toBeDefined();
       expect(result).toEqual(PAYMENT);
+    });
+
+    it('rejects an invalid request before hitting the network', async () => {
+      const { service, fetchFn } = makeService(PAYMENT);
+
+      await expect(service.create({ amount: 100 })).rejects.toBeInstanceOf(ValidationError);
+      expect(fetchFn).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('validateReceivePaymentRequest', () => {
+    it('passes a complete retail request', () => {
+      expect(validateReceivePaymentRequest(VALID_RETAIL_REQUEST)).toEqual([]);
+    });
+
+    it('flags the always-required top-level fields', () => {
+      const issues = validateReceivePaymentRequest({});
+      expect(issues).toEqual(
+        expect.arrayContaining([
+          'channelId is required',
+          'sequenceId is required',
+          'customerUID is required',
+          'customerType is required',
+        ])
+      );
+    });
+
+    it('rejects an unknown customerType', () => {
+      const issues = validateReceivePaymentRequest({ ...VALID_RETAIL_REQUEST, customerType: 'vip' as never });
+      expect(issues).toContain('customerType must be one of "retail" | "institution" (got "vip")');
+    });
+
+    it('requires the full retail KYC set', () => {
+      const issues = validateReceivePaymentRequest({
+        channelId: 'ch-1',
+        sequenceId: 'seq-1',
+        customerUID: 'cust-1',
+        customerType: 'retail',
+        recipient: { name: 'John Doe' },
+      });
+      expect(issues).toEqual(
+        expect.arrayContaining([
+          'recipient.phone is required when customerType is "retail"',
+          'recipient.email is required when customerType is "retail"',
+          'recipient.idType is required when customerType is "retail"',
+        ])
+      );
+    });
+
+    it('requires a second ID for Nigerian retail recipients', () => {
+      const issues = validateReceivePaymentRequest({
+        ...VALID_RETAIL_REQUEST,
+        recipient: { ...VALID_RETAIL_REQUEST.recipient, country: 'NG' },
+      });
+      expect(issues).toEqual(
+        expect.arrayContaining([
+          'recipient.additionalIdType is required for retail recipients in NG',
+          'recipient.additionalIdNumber is required for retail recipients in NG',
+        ])
+      );
+    });
+
+    it('requires business identity for institution recipients', () => {
+      const issues = validateReceivePaymentRequest({
+        channelId: 'ch-1',
+        sequenceId: 'seq-1',
+        customerUID: 'cust-1',
+        customerType: 'institution',
+        recipient: { email: 'ops@acme.io' },
+      });
+      expect(issues).toEqual(
+        expect.arrayContaining([
+          'recipient.businessId is required when customerType is "institution"',
+          'recipient.businessName is required when customerType is "institution"',
+        ])
+      );
+    });
+
+    it('requires country and currency when channelType is used', () => {
+      const issues = validateReceivePaymentRequest({ ...VALID_RETAIL_REQUEST, channelType: 'momo' });
+      expect(issues).toEqual(
+        expect.arrayContaining([
+          'country is required when channelType is used',
+          'currency is required when channelType is used',
+        ])
+      );
+    });
+
+    it('requires settlement info when directSettlement is true', () => {
+      const issues = validateReceivePaymentRequest({ ...VALID_RETAIL_REQUEST, directSettlement: true });
+      expect(issues).toContain('settlementInfo is required when directSettlement is true');
+    });
+
+    it('rejects a schemeless redirectUrl', () => {
+      const issues = validateReceivePaymentRequest({ ...VALID_RETAIL_REQUEST, redirectUrl: 'example.com/return' });
+      expect(issues).toContain('redirectUrl must be a valid URL including the http:// or https:// scheme');
+    });
+
+    it('accepts an http(s) redirectUrl', () => {
+      const issues = validateReceivePaymentRequest({ ...VALID_RETAIL_REQUEST, redirectUrl: 'https://example.com/return' });
+      expect(issues).toEqual([]);
+    });
+
+    it('rejects an unknown channelType', () => {
+      const issues = validateReceivePaymentRequest({ ...VALID_RETAIL_REQUEST, channelType: 'wire' as never });
+      expect(issues).toContain('channelType must be one of "bank" | "momo" (got "wire")');
+    });
+
+    it('rejects a non-integer amount', () => {
+      const issues = validateReceivePaymentRequest({ ...VALID_RETAIL_REQUEST, amount: 10.5 });
+      expect(issues).toContain('amount must be an integer');
+    });
+
+    it('rejects an unknown source.accountType', () => {
+      const issues = validateReceivePaymentRequest({
+        ...VALID_RETAIL_REQUEST,
+        source: { accountType: 'crypto' as never },
+      });
+      expect(issues).toContain('source.accountType must be one of "bank" | "momo" (got "crypto")');
+    });
+
+    it('flags each missing settlementInfo field when directSettlement is true', () => {
+      const issues = validateReceivePaymentRequest({
+        ...VALID_RETAIL_REQUEST,
+        directSettlement: true,
+        settlementInfo: { walletAddress: '0xabc' },
+      });
+      expect(issues).toEqual(
+        expect.arrayContaining([
+          'settlementInfo.cryptoCurrency is required when directSettlement is true',
+          'settlementInfo.cryptoNetwork is required when directSettlement is true',
+        ])
+      );
+      expect(issues).not.toContain('settlementInfo.walletAddress is required when directSettlement is true');
+    });
+
+    it('passes a complete institution request', () => {
+      const issues = validateReceivePaymentRequest({
+        channelId: 'ch-1',
+        sequenceId: 'seq-1',
+        customerUID: 'cust-1',
+        customerType: 'institution',
+        amount: 100,
+        recipient: { email: 'ops@acme.io', businessId: 'biz-1', businessName: 'Acme Inc' },
+        source: { accountType: 'momo', accountNumber: '1111111111' },
+      });
+      expect(issues).toEqual([]);
     });
   });
 

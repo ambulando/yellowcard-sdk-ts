@@ -5,7 +5,8 @@ import {PaymentsService} from './services/receive';
 import {RatesService} from './services/rates.js';
 import {VaultService} from "./services/vaults";
 
-export { APIError, isNotFound, isUnauthorized } from './errors.js';
+export { APIError, ValidationError, isNotFound, isUnauthorized } from './errors.js';
+export { validateReceivePaymentRequest } from './services/receive';
 export { DEFAULT_BASE_URL, SANDBOX_BASE_URL };
 export type { ClientOptions } from './client.js';
 export type { Rate } from './services/rates.js';
@@ -13,7 +14,7 @@ export type { Network, Channel } from './services/networks.js';
 export type { Account } from './services/accounts.js';
 export type { Webhook, WebhookRequest } from './services/webhook';
 export type { Vault, VaultAsset, AssetConfig, AssetNetworks, AssetNetwork, AssetResource, Address, AddressRequest } from './services/vaults';
-export type { ReceivePaymentResponse, ReceivePaymentRequest, Payment, BankInfo, Recipient, Source, SearchData, PaymentCollection } from './services/receive';
+export type { ReceivePaymentRequest, Payment, BankInfo, Recipient, Source, SettlementInfo, SearchData, PaymentCollection } from './services/receive';
 
 export class YellowCard {
   readonly accounts: AccountsService;
