@@ -4,3 +4,9 @@ node_modules
 dist
 CLAUDE.md
 .DS_Store
+.env.test
+.env.test.local
+rates.json
+channels.json
+networks.json
+account.json
