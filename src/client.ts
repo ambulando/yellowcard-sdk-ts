@@ -27,10 +27,13 @@ export class HttpClient {
   }
 
   async request<T>(method: string, path: string, body?: unknown): Promise<T> {
+    // The signature is computed over the path only, excluding the query
+    // string — the server rejects signatures that include it (401).
+    const signPath = path.split('?')[0];
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       Accept: 'application/json',
-      ...authHeaders(this.apiKey, this.secretKey, method, path, body),
+      ...authHeaders(this.apiKey, this.secretKey, method, signPath, body),
     };
     const rawBody = body != null ? JSON.stringify(body) : '';
     const response = await this.fetchFn(this.baseURL + path, {

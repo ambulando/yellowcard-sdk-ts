@@ -1,5 +1,6 @@
 import { jest } from '@jest/globals';
 import { HttpClient, DEFAULT_BASE_URL, SANDBOX_BASE_URL } from '../src/client.js';
+import { sign } from '../src/auth.js';
 import { APIError } from '../src';
 
 function makeFetch(status: number, body: unknown): jest.MockedFunction<typeof globalThis.fetch> {
@@ -52,6 +53,25 @@ describe('HttpClient', () => {
     expect(err.statusCode).toBe(401);
     expect(err.code).toBe('UNAUTHORIZED');
     expect(err.message).toContain('Invalid credentials');
+  });
+
+  it('signs the path without the query string but still requests it', async () => {
+    // The server computes the signature over the path only; including the
+    // query string yields a 401. See src/client.ts request().
+    const fetchFn = makeFetch(200, { rates: [] });
+    const client = new HttpClient('my-api-key', 'my-secret', { fetch: fetchFn });
+    await client.get('/business/rates?currency=USD');
+
+    const [url, init] = jest.mocked(fetchFn).mock.calls[0];
+    const headers = init?.headers as Record<string, string>;
+    const timestamp = headers['X-YC-Timestamp'];
+    const signature = headers['Authorization'].split(':')[1];
+
+    // The request URL keeps the query string...
+    expect(url).toBe('https://api.yellowcard.io/business/rates?currency=USD');
+    // ...but the signature is over the bare path.
+    expect(signature).toBe(sign('my-secret', 'GET', '/business/rates', '', timestamp));
+    expect(signature).not.toBe(sign('my-secret', 'GET', '/business/rates?currency=USD', '', timestamp));
   });
 
   it('sends JSON body for POST requests', async () => {
