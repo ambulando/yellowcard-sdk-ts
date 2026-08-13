@@ -8,35 +8,36 @@ export interface Network {
   status: string;
   accountNumberType: string;
   country: string;
+  channelType: string;
   name: string;
   channelIds: string[];
   countryAccountNumberType: string;
 }
 
 export interface Channel {
-  id?: string;
-  max?: number;
-  currency?: string;
-  countryCurrency?: string;
-  status?: string;
-  widgetStatus?: string;
-  feeLocal?: number;
-  createdAt?: string;
-  vendorId?: string;
-  country?: string;
-  feeUSD?: number;
-  min?: number;
-  channelType?: string;
-  rampType?: string;
-  apiStatus?: string;
-  settlementType?: string;
-  estimatedSettlementTime?: number;
+  id: string;
+  max: number;
+  currency: string;
+  countryCurrency: string;
+  status: string;
+  widgetStatus: string;
+  feeLocal: number;
+  createdAt: string;
+  vendorId: string;
+  country: string;
+  feeUSD: number;
+  min: number;
+  channelType: string;
+  rampType: string;
+  apiStatus: string;
+  settlementType: string;
+  estimatedSettlementTime: number;
   balancer: any;
-  updatedAt?: string;
-  widgetMin?: number;
-  widgetMax?: number;
-  countryMin?: number;
-  countryMax?: number;
+  updatedAt: string;
+  widgetMin: number;
+  widgetMax: number;
+  countryMin: number;
+  countryMax: number;
 }
 
 export class NetworksService {
