@@ -1,6 +1,6 @@
 {
   "name": "@ambulando/yellowcard-sdk",
-  "version": "1.3.2",
+  "version": "1.3.3",
   "description": "TypeScript client for the YellowCard API",
   "type": "module",
   "main": "./dist/index.cjs",
