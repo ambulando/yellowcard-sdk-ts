@@ -19,4 +19,28 @@ describeLive('RatesService (live sandbox)', () => {
       expect(['number', 'undefined']).toContain(typeof r.sell);
     }
   }, 30_000);
+
+  it('lists rates for NGN', async () => {
+    const rates = await yc.rates.list('NGN');
+
+    expect(Array.isArray(rates)).toBe(true);
+    if (rates.length > 0) {
+      const [r] = rates;
+      expect(typeof r.code).toBe('string');
+      expect(['number', 'undefined']).toContain(typeof r.buy);
+      expect(['number', 'undefined']).toContain(typeof r.sell);
+    }
+  }, 30_000);
+
+  it('lists rates for XAF', async () => {
+    const rates = await yc.rates.list('XAF');
+
+    expect(Array.isArray(rates)).toBe(true);
+    if (rates.length > 0) {
+      const [r] = rates;
+      expect(typeof r.code).toBe('string');
+      expect(['number', 'undefined']).toContain(typeof r.buy);
+      expect(['number', 'undefined']).toContain(typeof r.sell);
+    }
+  }, 30_000);
 });

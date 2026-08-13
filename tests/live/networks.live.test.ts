@@ -8,6 +8,19 @@ const describeLive = hasCredentials ? describe : describe.skip;
 describeLive('NetworksService (live sandbox)', () => {
   const yc = new YellowCard(YC_API_KEY, YC_SECRET_KEY, { sandbox: true });
 
+  it('lists networks for country', async () => {
+    const networks = await yc.networks.list("NG");
+
+    expect(Array.isArray(networks)).toBe(true);
+    if (networks.length > 0) {
+      const [n] = networks;
+      expect(typeof n.id).toBe('string');
+      expect(typeof n.code).toBe('string');
+      expect(typeof n.country).toBe('string');
+      expect(typeof n.status).toBe('string');
+    }
+  }, 30_000);
+
   it('lists networks', async () => {
     const networks = await yc.networks.list();
 
@@ -22,6 +35,15 @@ describeLive('NetworksService (live sandbox)', () => {
 
   it('lists channels', async () => {
     const channels = await yc.networks.channels();
+
+    expect(Array.isArray(channels)).toBe(true);
+    if (channels.length > 0) {
+      expect(typeof channels[0]).toBe('object');
+    }
+  },
+      30_000);
+  it('lists channels for country', async () => {
+    const channels = await yc.networks.channels('NG');
 
     expect(Array.isArray(channels)).toBe(true);
     if (channels.length > 0) {

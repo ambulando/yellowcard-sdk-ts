@@ -5,6 +5,7 @@ export interface Network {
   code: string;
   updatedAt: Date;
   createdAt: Date;
+  status: string;
   accountNumberType: string;
   country: string;
   name: string;
@@ -30,6 +31,7 @@ export interface Channel {
   apiStatus?: string;
   settlementType?: string;
   estimatedSettlementTime?: number;
+  balancer: any;
   updatedAt?: string;
   widgetMin?: number;
   widgetMax?: number;
