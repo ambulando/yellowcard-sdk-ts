@@ -1,10 +1,10 @@
 import type { HttpClient } from '../client.js';
 import { ValidationError } from '../errors.js';
 
-type CustomerType = 'retail' | 'institution';
-type ChannelType = 'bank' | 'momo';
-type SortRangeBy = 'createdAt' | 'updatedAt';
-type OrderBy = 'desc' | 'asc';
+export type CustomerType = 'retail' | 'institution';
+export type ChannelType = 'bank' | 'momo';
+export type SortRangeBy = 'createdAt' | 'updatedAt';
+export type OrderBy = 'desc' | 'asc';
 
 export interface ReceivePaymentRequest {
   recipient?: Recipient;
@@ -25,62 +25,62 @@ export interface ReceivePaymentRequest {
 }
 
 export interface Payment {
-  recipient?: Recipient;
-  source?: Source;
-  channelId?: string;
-  sequenceId?: string;
-  amount?: number;
-  currency?: string;
-  country?: string;
-  partnerId?: string;
-  apiKey?: string;
-  id?: string;
-  status?: string;
-  convertedAmount?: number;
-  rate?: number;
-  serviceFeeAmountLocal?: number;
-  serviceFeeAmountUSD?: number;
-  partnerFeeAmountLocal?: number;
-  partnerFeeAmountUSD?: number;
-  fiatWallet?: string;
-  requestSource?: string;
-  directSettlement?: boolean;
-  expiresAt?: string;
-  createdAt?: string;
-  updatedAt?: string;
+  recipient: Recipient;
+  source: Source;
+  channelId: string;
+  sequenceId: string;
+  amount: number;
+  currency: string;
+  country: string;
+  partnerId: string;
+  apiKey: string;
+  id: string;
+  status: string;
+  convertedAmount: number;
+  rate: number;
+  serviceFeeAmountLocal: number;
+  serviceFeeAmountUSD: number;
+  partnerFeeAmountLocal: number;
+  partnerFeeAmountUSD: number;
+  fiatWallet: string;
+  requestSource: string;
+  directSettlement: boolean;
+  expiresAt: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Recipient {
-  name?: string;
-  country?: string;
-  address?: string;
-  dob?: string;
-  email?: string;
-  idNumber?: string;
-  idType?: string;
-  additionalIdType?: string;
-  additionalIdNumber?: string;
-  phone?: string;
-  businessId?: string;
-  businessName?: string;
+  name: string;
+  country: string;
+  address: string;
+  dob: string;
+  email: string;
+  idNumber: string;
+  idType: string;
+  additionalIdType: string;
+  additionalIdNumber: string;
+  phone: string;
+  businessId: string;
+  businessName: string;
 }
 
 export interface BankInfo {
-  name?: string;
-  accountNumber?: string;
-  accountName?: string;
+  name: string;
+  accountNumber: string;
+  accountName: string;
 }
 
 export interface Source {
-  accountType?: string;
-  accountNumber?: string;
-  networkId?: string;
+  accountType: string;
+  accountNumber: string;
+  networkId: string;
 }
 
 export interface SettlementInfo {
-  walletAddress?: string;
-  cryptoCurrency?: string;
-  cryptoNetwork?: string;
+  walletAddress: string;
+  cryptoCurrency: string;
+  cryptoNetwork: string;
   walletTag?: string;
 }
 
