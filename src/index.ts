@@ -3,10 +3,12 @@ import {AccountsService} from './services/accounts.js';
 import {NetworksService} from './services/networks.js';
 import {PaymentsService} from './services/receive';
 import {RatesService} from './services/rates.js';
+import {TransactionService} from "./services/transactions";
 import {VaultService} from "./services/vaults";
 
 export { APIError, ValidationError, isNotFound, isUnauthorized } from './errors.js';
 export { validateReceivePaymentRequest } from './services/receive';
+export { validateTravelRuleData } from './services/transactions.js';
 export { DEFAULT_BASE_URL, SANDBOX_BASE_URL };
 export type { ClientOptions } from './client.js';
 export type { Rate } from './services/rates.js';
@@ -15,6 +17,7 @@ export type { Account } from './services/accounts.js';
 export type { Webhook, WebhookRequest } from './services/webhook';
 export type { Vault, VaultAsset, AssetConfig, AssetNetworks, AssetNetwork, AssetResource, Address, AddressRequest } from './services/vaults';
 export type { ReceivePaymentRequest, Payment, BankInfo, Recipient, Source, SettlementInfo, SearchData, PaymentCollection } from './services/receive';
+export type { SendRequest, SendResponse, Fee, Destination, FeeRequest, TransactionsRequest, Transactions, Transaction, TravelRuleConfig, TravelRuleField, TravelRuleValidationResult } from "./services/transactions.js"
 
 export class YellowCard {
   readonly accounts: AccountsService;
@@ -22,6 +25,7 @@ export class YellowCard {
   readonly payments: PaymentsService;
   readonly rates: RatesService;
   readonly vaults: VaultService;
+  readonly transactions: TransactionService;
   readonly httpClient: HttpClient;
 
   constructor(
@@ -35,5 +39,6 @@ export class YellowCard {
     this.payments = new PaymentsService(this.httpClient);
     this.rates = new RatesService(this.httpClient);
     this.vaults = new VaultService(this.httpClient);
+    this.transactions = new TransactionService(this.httpClient);
   }
 }
